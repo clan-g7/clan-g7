@@ -1,0 +1,892 @@
+<!-- RAID Clan Strategy Hub -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Shippori+Mincho+B1:wght@600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- Firebase (共有保存用) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
+<script>
+  /* ===================================================================
+     ▼▼▼  ここにFirebaseの設定を貼り付けてください（最初の1回だけ） ▼▼▼
+     Firebaseコンソールで取得した firebaseConfig を、まるごと下記に置き換えます。
+     databaseURL の行が入っていることを必ず確認してください。
+     =================================================================== */
+  var firebaseConfig = {
+    apiKey: "AIzaSyDSGqIdvKMqNTo82viXJJn1m2ZOfK3qvrI",
+    authDomain: "clan--g7.firebaseapp.com",
+    databaseURL: "https://clan--g7-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "clan--g7",
+    storageBucket: "clan--g7.firebasestorage.app",
+    messagingSenderId: "44867124244",
+    appId: "1:44867124244:web:68768c212623f0cb11fb01",
+    measurementId: "G-WL0DFZ6DZS"
+  };
+  /* ▲▲▲  貼り付けここまで  ▲▲▲ */
+</script>
+
+<style>
+  :root{
+    --obsidian:#0c0a12;
+    --crypt:#15121d;
+    --crypt-2:#1c1726;
+    --ember:#c5422a;
+    --ember-bright:#e25a3c;
+    --gold:#cba35c;
+    --gold-dim:#8a7340;
+    --bone:#ece3d2;
+    --mist:#928aa0;
+    --line:rgba(203,163,92,.18);
+    --line-soft:rgba(203,163,92,.10);
+    --shadow:0 18px 40px -18px rgba(0,0,0,.85);
+    --ff-disp:"Shippori Mincho B1", serif;
+    --ff-eye:"Cinzel", serif;
+    --ff-body:"Noto Sans JP", sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--ff-body);
+    color:var(--bone);
+    background:
+      radial-gradient(1100px 600px at 50% -8%, rgba(197,66,42,.16), transparent 60%),
+      radial-gradient(900px 700px at 85% 20%, rgba(203,163,92,.07), transparent 55%),
+      var(--obsidian);
+    background-attachment:fixed;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.7;
+  }
+  /* faint vellum texture */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.04;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+  .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 22px;}
+
+  /* ============ HEADER ============ */
+  header.site{padding:46px 0 26px;text-align:center;}
+  .crest-btn{appearance:none;background:none;border:0;padding:6px;margin:0 auto 12px;display:block;cursor:pointer;
+    border-radius:14px;line-height:0;transition:transform .18s, box-shadow .2s;}
+  .crest-btn:hover{transform:translateY(-2px) scale(1.04);}
+  .crest-btn:focus-visible{outline:2px solid var(--gold);outline-offset:4px;}
+  .crest{width:74px;height:84px;display:block;filter:drop-shadow(0 6px 14px rgba(197,66,42,.35));object-fit:contain;}
+  .crest-edit{font-size:10px;letter-spacing:.06em;color:var(--gold-dim);opacity:0;transition:opacity .2s;margin-top:-4px;display:block;}
+  .crest-btn:hover + .crest-edit,.crest-btn:focus-visible + .crest-edit{opacity:1;}
+  .preset-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .preset-grid button{appearance:none;cursor:pointer;background:var(--obsidian);border:1px solid var(--line-soft);
+    border-radius:12px;padding:12px 6px;display:grid;place-items:center;transition:.18s;}
+  .preset-grid button:hover{border-color:var(--line);background:var(--crypt-2);}
+  .preset-grid button.on{border-color:var(--gold);box-shadow:0 0 0 2px rgba(203,163,92,.25);}
+  .preset-grid svg{width:38px;height:42px;}
+  .or-line{display:flex;align-items:center;gap:12px;color:var(--mist);font-size:12px;margin:18px 0 6px;}
+  .or-line::before,.or-line::after{content:"";height:1px;flex:1;background:var(--line-soft);}
+  .eyebrow{font-family:var(--ff-eye);letter-spacing:.42em;font-size:11px;color:var(--gold);
+    text-transform:uppercase;margin-bottom:10px;padding-left:.42em;}
+  .clan-name{
+    font-family:var(--ff-disp);font-weight:800;line-height:1.05;margin:0;
+    font-size:clamp(34px,7vw,62px);
+    background:linear-gradient(180deg,#f3e9d2 0%, var(--gold) 55%, var(--gold-dim) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    cursor:text;border-radius:6px;
+  }
+  .clan-name:focus{outline:2px solid var(--gold);outline-offset:6px;}
+  .clan-sub{color:var(--mist);font-size:15px;margin:8px 0 0;cursor:text;border-radius:6px;display:inline-block;}
+  .clan-sub:focus{outline:2px solid var(--gold);outline-offset:4px;color:var(--bone);}
+  .edit-hint{display:block;margin-top:6px;font-size:11px;color:var(--gold-dim);letter-spacing:.05em;}
+
+  /* ============ BANNER ============ */
+  .banner{position:relative;width:100%;border-radius:18px;overflow:hidden;margin-bottom:30px;
+    border:1px solid var(--line-soft);box-shadow:var(--shadow);line-height:0;}
+  .banner img{display:block;width:100%;aspect-ratio:1200/300;object-fit:cover;}
+  .b-scrim{position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg, rgba(12,10,18,.15), transparent 35%, rgba(12,10,18,.5));}
+  .b-actions{position:absolute;top:12px;right:12px;display:flex;gap:8px;opacity:0;transition:opacity .2s;}
+  .banner:hover .b-actions,.banner:focus-within .b-actions{opacity:1;}
+  .b-chip{appearance:none;cursor:pointer;font-family:var(--ff-body);font-weight:700;font-size:12.5px;
+    color:var(--bone);background:rgba(12,10,18,.7);border:1px solid var(--line);border-radius:9px;
+    padding:7px 12px;backdrop-filter:blur(4px);transition:.15s;}
+  .b-chip:hover{background:rgba(28,23,38,.9);border-color:var(--gold-dim);}
+  .banner-add{appearance:none;cursor:pointer;width:100%;aspect-ratio:1200/200;margin-bottom:30px;
+    border:1.5px dashed var(--line);border-radius:18px;background:rgba(28,23,38,.35);
+    color:var(--mist);font-family:var(--ff-body);font-weight:700;font-size:15px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:.2s;}
+  .banner-add:hover{border-color:var(--gold-dim);background:rgba(28,23,38,.6);color:var(--bone);}
+  .banner-add svg{width:30px;height:30px;color:var(--gold-dim);}
+  @media (max-width:560px){ .banner-add{aspect-ratio:1200/280;} }
+
+  /* hero layout: title overlaid on banner */
+  .banner.hero{margin-bottom:30px;}
+  .banner.hero img{aspect-ratio:1200/440;}
+  @media (max-width:560px){ .banner.hero img{aspect-ratio:1000/680;} }
+  .banner.hero .b-scrim{background:linear-gradient(180deg, rgba(12,10,18,.28) 0%, rgba(12,10,18,.35) 45%, rgba(12,10,18,.85) 100%);}
+  .b-overlay{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;
+    align-items:center;justify-content:flex-end;text-align:center;padding:24px 22px 30px;
+    line-height:normal;pointer-events:none;}
+  .b-overlay #titleBlock{pointer-events:auto;margin:0;}
+  .banner.hero .crest-btn{margin-bottom:8px;}
+  .banner.hero .crest{width:58px;height:66px;}
+  .banner.hero .crest-edit,.banner.hero .edit-hint{display:none;}
+  .banner.hero .clan-name{filter:drop-shadow(0 2px 12px rgba(0,0,0,.75));}
+  .banner.hero .clan-sub{color:#ece3d2;text-shadow:0 1px 8px rgba(0,0,0,.85);}
+  .banner.hero .eyebrow{color:#e8cd92;text-shadow:0 1px 5px rgba(0,0,0,.8);}
+  .banner .b-actions{z-index:4;}
+
+  .rune-div{display:flex;align-items:center;justify-content:center;gap:14px;margin:26px auto 0;max-width:560px;color:var(--gold-dim);}
+  .rune-div::before,.rune-div::after{content:"";height:1px;flex:1;
+    background:linear-gradient(90deg,transparent,var(--line),transparent);}
+  .rune-div svg{width:18px;height:18px;opacity:.7;}
+
+  /* ============ NAV ============ */
+  nav.tabs{position:sticky;top:0;z-index:20;display:flex;justify-content:center;gap:6px;
+    padding:12px 0;margin:22px 0 34px;
+    background:linear-gradient(180deg, rgba(12,10,18,.92), rgba(12,10,18,.55) 70%, transparent);
+    backdrop-filter:blur(8px);}
+  .tab{appearance:none;border:0;background:transparent;cursor:pointer;color:var(--mist);
+    font-family:var(--ff-body);font-weight:700;font-size:15px;padding:11px 20px;border-radius:11px;
+    position:relative;transition:color .2s, background .2s;letter-spacing:.04em;}
+  .tab .en{font-family:var(--ff-eye);font-size:9px;letter-spacing:.25em;display:block;color:var(--gold-dim);margin-top:2px;}
+  .tab:hover{color:var(--bone);background:rgba(203,163,92,.06);}
+  .tab.active{color:var(--bone);background:linear-gradient(180deg,var(--crypt-2),var(--crypt));
+    box-shadow:inset 0 0 0 1px var(--line), 0 8px 22px -12px rgba(197,66,42,.6);}
+  .tab.active::after{content:"";position:absolute;left:18px;right:18px;bottom:5px;height:2px;border-radius:2px;
+    background:linear-gradient(90deg,transparent,var(--ember-bright),transparent);
+    box-shadow:0 0 10px var(--ember);}
+
+  /* ============ PANELS ============ */
+  .panel{display:none;animation:rise .45s ease both;padding-bottom:90px;}
+  .panel.show{display:block;}
+  @keyframes rise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+
+  .panel-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;
+    flex-wrap:wrap;margin-bottom:22px;}
+  .panel-head h2{font-family:var(--ff-disp);font-weight:700;font-size:clamp(22px,3.4vw,30px);margin:0;color:var(--bone);}
+  .panel-head p{margin:4px 0 0;color:var(--mist);font-size:14px;}
+
+  /* buttons */
+  .btn{appearance:none;cursor:pointer;font-family:var(--ff-body);font-weight:700;font-size:14px;
+    border-radius:11px;padding:11px 18px;transition:transform .12s, box-shadow .2s, background .2s;
+    display:inline-flex;align-items:center;gap:8px;letter-spacing:.03em;border:1px solid transparent;}
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{color:#1b0f0c;
+    background:linear-gradient(180deg,var(--ember-bright),var(--ember));
+    box-shadow:inset 0 1px 0 rgba(255,224,196,.5), 0 10px 24px -12px rgba(197,66,42,.9);}
+  .btn-primary:hover{box-shadow:inset 0 1px 0 rgba(255,224,196,.6), 0 14px 30px -12px rgba(226,90,60,1);}
+  .btn-ghost{color:var(--gold);background:transparent;border-color:var(--line);}
+  .btn-ghost:hover{background:rgba(203,163,92,.08);color:var(--bone);}
+  .btn svg{width:16px;height:16px;}
+
+  /* ============ GUIDE CARDS ============ */
+  .grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));}
+  .card{background:linear-gradient(180deg,var(--crypt-2),var(--crypt));border:1px solid var(--line-soft);
+    border-radius:16px;padding:20px;position:relative;transition:transform .18s, border-color .25s, box-shadow .25s;}
+  .card:hover{transform:translateY(-4px);border-color:var(--line);box-shadow:var(--shadow);}
+  .card::before{content:"";position:absolute;inset:0;border-radius:16px;pointer-events:none;
+    background:linear-gradient(180deg, rgba(203,163,92,.05), transparent 30%);opacity:0;transition:opacity .25s;}
+  .card:hover::before{opacity:1;}
+  .badge{display:inline-block;font-family:var(--ff-eye);font-size:10px;letter-spacing:.16em;
+    text-transform:uppercase;padding:4px 10px;border-radius:999px;border:1px solid var(--line);
+    color:var(--gold);background:rgba(203,163,92,.06);margin-bottom:12px;}
+  .badge[data-cat="クランボス"]{color:var(--ember-bright);border-color:rgba(226,90,60,.4);background:rgba(226,90,60,.08);}
+  .badge[data-cat="ダンジョン"]{color:#7fb0d8;border-color:rgba(127,176,216,.35);background:rgba(127,176,216,.08);}
+  .badge[data-cat="アリーナ"]{color:#c79de0;border-color:rgba(199,157,224,.35);background:rgba(199,157,224,.08);}
+  .card h3{font-family:var(--ff-disp);font-weight:700;font-size:19px;margin:0 0 8px;color:var(--bone);}
+  .card .body{color:#cbc3b6;font-size:14.5px;white-space:pre-wrap;word-break:break-word;}
+  .card .meta{display:flex;align-items:center;justify-content:space-between;margin-top:16px;
+    padding-top:13px;border-top:1px solid var(--line-soft);font-size:12px;color:var(--mist);}
+  .sample-tag{position:absolute;top:14px;right:14px;font-size:10px;letter-spacing:.1em;color:var(--gold-dim);
+    border:1px dashed var(--gold-dim);border-radius:6px;padding:2px 7px;}
+  .del{appearance:none;background:none;border:0;color:var(--mist);cursor:pointer;font-size:12px;padding:4px 6px;border-radius:6px;}
+  .del:hover{color:var(--ember-bright);background:rgba(226,90,60,.08);}
+
+  /* ============ VIDEOS ============ */
+  .vgrid{display:grid;gap:20px;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));}
+  .vcard{background:linear-gradient(180deg,var(--crypt-2),var(--crypt));border:1px solid var(--line-soft);
+    border-radius:16px;overflow:hidden;transition:transform .18s, border-color .25s, box-shadow .25s;}
+  .vcard:hover{transform:translateY(-4px);border-color:var(--line);box-shadow:var(--shadow);}
+  .vframe{position:relative;aspect-ratio:16/9;background:#000;}
+  .vframe iframe,.vframe video{position:absolute;inset:0;width:100%;height:100%;border:0;}
+  .vlink{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:8px;color:var(--gold);text-decoration:none;background:radial-gradient(circle at 50% 40%,rgba(197,66,42,.18),#000);}
+  .vlink svg{width:46px;height:46px;}
+  .vbody{padding:15px 17px 17px;}
+  .vbody h3{font-family:var(--ff-disp);font-weight:700;font-size:16px;margin:0 0 6px;}
+  .vbody .note{color:#cbc3b6;font-size:13.5px;white-space:pre-wrap;word-break:break-word;}
+  .vbody .meta{display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-size:12px;color:var(--mist);}
+
+  /* ============ BOARD ============ */
+  .board-wrap{display:grid;grid-template-columns:1fr;gap:26px;max-width:760px;margin:0 auto;}
+  .composer{background:linear-gradient(180deg,var(--crypt-2),var(--crypt));border:1px solid var(--line);
+    border-radius:16px;padding:18px;position:sticky;top:78px;z-index:5;}
+  .composer .row{display:flex;gap:10px;margin-bottom:10px;align-items:center;}
+  input,textarea,select{font-family:var(--ff-body);color:var(--bone);background:var(--obsidian);
+    border:1px solid var(--line-soft);border-radius:10px;padding:11px 13px;font-size:14.5px;width:100%;transition:border-color .2s, box-shadow .2s;}
+  input::placeholder,textarea::placeholder{color:#6c6479;}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--gold-dim);box-shadow:0 0 0 3px rgba(203,163,92,.12);}
+  .composer .name{max-width:200px;}
+  textarea{resize:vertical;min-height:64px;line-height:1.6;}
+  .composer .send-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:12px;}
+  .composer .send-row small{color:var(--mist);font-size:12px;}
+
+  .feed{display:flex;flex-direction:column;gap:14px;}
+  .post{display:flex;gap:14px;background:linear-gradient(180deg,var(--crypt-2),var(--crypt));
+    border:1px solid var(--line-soft);border-radius:14px;padding:15px 17px;animation:rise .35s ease both;}
+  .avatar{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;
+    font-family:var(--ff-disp);font-weight:700;font-size:18px;color:#1b0f0c;
+    background:linear-gradient(180deg,var(--gold),var(--gold-dim));box-shadow:inset 0 1px 0 rgba(255,255,255,.3);}
+  .post .pmain{flex:1;min-width:0;}
+  .post .phead{display:flex;align-items:baseline;gap:10px;margin-bottom:4px;flex-wrap:wrap;}
+  .post .pname{font-weight:700;color:var(--bone);}
+  .post .ptime{font-size:12px;color:var(--mist);}
+  .post .ptext{color:#d6cebf;font-size:14.5px;white-space:pre-wrap;word-break:break-word;}
+
+  /* ============ EMPTY STATES ============ */
+  .empty{text-align:center;padding:54px 20px;color:var(--mist);border:1px dashed var(--line-soft);border-radius:16px;}
+  .empty svg{width:40px;height:40px;color:var(--gold-dim);margin-bottom:12px;}
+  .empty h3{font-family:var(--ff-disp);color:var(--bone);font-size:18px;margin:0 0 6px;}
+  .empty p{margin:0;font-size:14px;}
+
+  /* ============ MODAL ============ */
+  .scrim{position:fixed;inset:0;z-index:60;background:rgba(6,4,10,.74);backdrop-filter:blur(6px);
+    display:none;align-items:flex-start;justify-content:center;padding:7vh 18px 18px;overflow:auto;}
+  .scrim.show{display:flex;}
+  .modal{width:100%;max-width:520px;background:linear-gradient(180deg,var(--crypt-2),var(--crypt));
+    border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:var(--shadow);animation:rise .3s ease both;}
+  .modal h3{font-family:var(--ff-disp);font-size:21px;margin:0 0 4px;}
+  .modal .field{margin-top:15px;}
+  .modal label{display:block;font-size:12.5px;color:var(--gold);letter-spacing:.04em;margin-bottom:7px;font-weight:700;}
+  .modal .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;}
+  .seg{display:flex;gap:8px;flex-wrap:wrap;}
+  .seg button{flex:1;min-width:84px;appearance:none;cursor:pointer;border:1px solid var(--line-soft);background:var(--obsidian);
+    color:var(--mist);border-radius:10px;padding:10px;font-family:var(--ff-body);font-weight:700;font-size:13.5px;transition:.18s;}
+  .seg button.on{color:#1b0f0c;background:linear-gradient(180deg,var(--gold),var(--gold-dim));border-color:transparent;}
+
+  footer{padding:34px 0 50px;text-align:center;color:var(--mist);font-size:12.5px;border-top:1px solid var(--line-soft);}
+  .store-check,.store-ok,.store-bad{display:inline-block;margin-bottom:12px;padding:6px 14px;border-radius:999px;font-weight:700;font-size:12px;}
+  .store-check{color:var(--mist);border:1px solid var(--line-soft);}
+  .store-ok{color:#7fcf9b;border:1px solid rgba(127,207,155,.4);background:rgba(127,207,155,.08);}
+  .store-bad{color:var(--ember-bright);border:1px solid rgba(226,90,60,.45);background:rgba(226,90,60,.1);}
+
+  #setupBanner{margin:18px 0 0;}
+  .setup-box{border:1px solid rgba(226,90,60,.4);background:rgba(226,90,60,.08);border-radius:16px;padding:20px 22px;}
+  .setup-box h3{font-family:var(--ff-disp);margin:0 0 8px;color:var(--bone);font-size:18px;}
+  .setup-box p{margin:0 0 10px;color:#d6cebf;font-size:14px;}
+  .setup-box ol{margin:10px 0 4px;padding-left:20px;color:#d6cebf;font-size:14px;line-height:1.9;}
+  .setup-box a{color:var(--gold);}
+  .setup-box code{background:var(--obsidian);border:1px solid var(--line-soft);border-radius:6px;padding:1px 6px;font-size:12.5px;color:var(--gold);}
+  .setup-ok{border:1px solid rgba(127,207,155,.35);background:rgba(127,207,155,.07);border-radius:14px;padding:12px 18px;color:#9bd9b1;font-size:13.5px;}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);z-index:80;
+    background:var(--crypt-2);border:1px solid var(--line);color:var(--bone);padding:12px 20px;border-radius:12px;
+    font-size:14px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.3s;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:560px){
+    nav.tabs{gap:2px;}
+    .tab{padding:9px 12px;font-size:13.5px;}
+    .composer{position:static;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important;transition:none !important;}
+  }
+</style>
+
+<div class="wrap">
+  <div id="setupBanner"></div>
+  <header class="site">
+    <div id="bannerZone"></div>
+    <div id="titleBlock">
+      <button class="crest-btn" id="crestBtn" aria-label="クランのシンボルを変更" title="クリックしてシンボルを変更"></button>
+      <span class="crest-edit">クリックでシンボル変更</span>
+      <div class="eyebrow">Clan Strategy Hub</div>
+      <h1 class="clan-name" id="clanName" contenteditable="true" spellcheck="false">クラン名をここに</h1>
+      <div class="clan-sub" id="clanSub" contenteditable="true" spellcheck="false">— 私たちのクランの合言葉や紹介文 —</div>
+      <span class="edit-hint">クラン名・紹介文は文字をクリックして直接編集できます</span>
+    </div>
+    <div class="rune-div">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 2l2 8 8 2-8 2-2 8-2-8-8-2 8-2 2-8Z" fill="#cba35c"/></svg>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="guides" role="tab">攻略<span class="en">Strategy</span></button>
+    <button class="tab" data-tab="videos" role="tab">動画<span class="en">Videos</span></button>
+    <button class="tab" data-tab="board" role="tab">掲示板<span class="en">Board</span></button>
+  </nav>
+
+  <!-- ===== GUIDES ===== -->
+  <section class="panel show" id="panel-guides">
+    <div class="panel-head">
+      <div>
+        <h2>攻略メモ</h2>
+        <p>クランボス・ダンジョン・アリーナの編成やコツを書き残そう</p>
+      </div>
+      <button class="btn btn-primary" id="addGuide">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+        攻略を追加
+      </button>
+    </div>
+    <div class="grid" id="guideGrid"></div>
+  </section>
+
+  <!-- ===== VIDEOS ===== -->
+  <section class="panel" id="panel-videos">
+    <div class="panel-head">
+      <div>
+        <h2>動画ガイド</h2>
+        <p>YouTube などの動画URLを貼ると、そのまま再生できる形で並びます</p>
+      </div>
+      <button class="btn btn-primary" id="addVideo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+        動画を追加
+      </button>
+    </div>
+    <div class="vgrid" id="videoGrid"></div>
+  </section>
+
+  <!-- ===== BOARD ===== -->
+  <section class="panel" id="panel-board">
+    <div class="panel-head">
+      <div>
+        <h2>クラン掲示板</h2>
+        <p>連絡・質問・雑談、なんでも気軽にどうぞ</p>
+      </div>
+    </div>
+    <div class="board-wrap">
+      <div class="composer">
+        <div class="row">
+          <input class="name" id="boardName" placeholder="名前（一度入れると記憶されます）" maxlength="20" />
+        </div>
+        <textarea id="boardText" placeholder="メッセージを書く…" maxlength="800"></textarea>
+        <div class="send-row">
+          <small>みんなに共有されます</small>
+          <button class="btn btn-primary" id="boardSend">書き込む</button>
+        </div>
+      </div>
+      <div class="feed" id="boardFeed"></div>
+    </div>
+  </section>
+
+  <footer>
+    <div id="storeStatus" class="store-check">保存先を確認中…</div>
+    このサイトのデータ（攻略・動画・掲示板）は、同じページを開いたクランメンバー全員で共有されます。
+  </footer>
+</div>
+
+<!-- ===== MODAL ===== -->
+<div class="scrim" id="scrim">
+  <div class="modal" id="modal"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- storage layer (Firebase Realtime Database = clan-wide shared) ---------- */
+  const mem = {}; // in-memory mirror / fallback
+  let fbReady = false, db = null;
+
+  function configFilled(){
+    return typeof firebaseConfig==="object" && firebaseConfig && typeof firebaseConfig.databaseURL==="string" && firebaseConfig.databaseURL.trim().length>0;
+  }
+  function initFirebase(){
+    if(!configFilled()) return false;
+    if(typeof firebase==="undefined") return false;
+    try{
+      if(!firebase.apps || !firebase.apps.length){ firebase.initializeApp(firebaseConfig); }
+      db = firebase.database();
+      fbReady = true;
+      return true;
+    }catch(e){ console.error("Firebase init失敗:", e); return false; }
+  }
+
+  // personal-only value (clan member's own name) stays on this device via localStorage
+  function isPersonal(key){ return key===KEY.me; }
+
+  async function load(key, shared, fallback){
+    if(isPersonal(key)){
+      try{ const v=localStorage.getItem(key); return v!==null?JSON.parse(v):fallback; }catch(e){ return fallback; }
+    }
+    if(!fbReady){ return key in mem ? mem[key] : fallback; }
+    try{
+      const snap = await db.ref('clan/'+key).once('value');
+      if(snap.exists()){ const v=JSON.parse(snap.val()); mem[key]=v; return v; }
+      return key in mem ? mem[key] : fallback;
+    }catch(e){ return key in mem ? mem[key] : fallback; }
+  }
+  async function save(key, val, shared){
+    if(isPersonal(key)){
+      try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+      return true;
+    }
+    mem[key] = val;
+    if(!fbReady){ updateStorageStatus(false); return false; }
+    try{ await db.ref('clan/'+key).set(JSON.stringify(val)); updateStorageStatus(true); return true; }
+    catch(e){ updateStorageStatus(false); return false; }
+  }
+  function updateStorageStatus(ok){
+    const el=document.getElementById("storeStatus"); if(!el)return;
+    if(ok){ el.textContent="保存先：Firebase（クラン全員で共有・保存OK）"; el.className="store-ok"; }
+    else{ el.textContent="⚠ 未接続：Firebaseの設定が未入力か、接続できていません（保存されません）"; el.className="store-bad"; }
+  }
+
+  const KEY = { guides:"clan_guides", videos:"clan_videos", board:"clan_board", meta:"clan_meta", me:"clan_me_name", crest:"clan_crest", banner:"clan_banner" };
+
+  /* ---------- crest (clan symbol) presets ---------- */
+  const PRESETS = {
+    shield:`<svg class="crest" viewBox="0 0 74 84" fill="none" aria-hidden="true">
+      <path d="M37 2 70 14v28c0 22-15 33-33 40C19 75 4 64 4 42V14L37 2Z" fill="url(#grad_shield)" stroke="#cba35c" stroke-width="1.5"/>
+      <path d="M37 12 60 20v22c0 16-11 24-23 29-12-5-23-13-23-29V20l23-8Z" fill="#15121d" stroke="rgba(203,163,92,.5)" stroke-width="1"/>
+      <path d="M37 24l5 12 13 1-10 8 3 13-11-7-11 7 3-13-10-8 13-1 5-12Z" fill="#c5422a"/>
+      <defs><linearGradient id="grad_shield" x1="37" y1="2" x2="37" y2="84" gradientUnits="userSpaceOnUse"><stop stop-color="#3a2f22"/><stop offset="1" stop-color="#120e16"/></linearGradient></defs></svg>`,
+    star:`<svg class="crest" viewBox="0 0 74 84" fill="none" aria-hidden="true">
+      <circle cx="37" cy="42" r="30" fill="#15121d" stroke="#cba35c" stroke-width="1.5"/>
+      <path d="M37 22 L42 35.1 L56 35.8 L45.1 44.6 L48.8 58.2 L37 50.5 L25.2 58.2 L28.9 44.6 L18 35.8 L32 35.1 Z" fill="#cba35c"/>
+      <circle cx="37" cy="42" r="4.5" fill="#c5422a"/></svg>`,
+    swords:`<svg class="crest" viewBox="0 0 74 84" fill="none" aria-hidden="true"><g fill="#cba35c">
+      <g transform="rotate(32 37 42)"><path d="M37 12 L40 48 L34 48 Z"/><rect x="28" y="48" width="18" height="4" rx="1"/><rect x="35" y="52" width="4" height="13" rx="2" fill="#8a7340"/><circle cx="37" cy="67" r="3" fill="#c5422a"/></g>
+      <g transform="rotate(-32 37 42)"><path d="M37 12 L40 48 L34 48 Z"/><rect x="28" y="48" width="18" height="4" rx="1"/><rect x="35" y="52" width="4" height="13" rx="2" fill="#8a7340"/><circle cx="37" cy="67" r="3" fill="#c5422a"/></g></g></svg>`,
+    flame:`<svg class="crest" viewBox="0 0 74 84" fill="none" aria-hidden="true">
+      <path d="M37 12c8 12 18 16 18 30 0 13-8 22-18 22S19 55 19 42c0-6 3-10 7-13-1 6 1 10 4 11-3-9 3-17 7-28Z" fill="#cba35c"/>
+      <path d="M37 34c4 6 8 9 8 16 0 7-4 12-8 12s-8-5-8-12c0-4 2-7 5-9 0 4 1 6 3 7-1-5 0-9 0-14Z" fill="#c5422a"/></svg>`,
+    skull:`<svg class="crest" viewBox="0 0 74 84" fill="none" aria-hidden="true">
+      <path d="M37 16c-12 0-20 8-20 20 0 7 3 12 7 15v8c0 2 2 4 4 4h18c2 0 4-2 4-4v-8c4-3 7-8 7-15 0-12-8-20-20-20Z" fill="#cba35c"/>
+      <circle cx="29" cy="38" r="5" fill="#15121d"/><circle cx="45" cy="38" r="5" fill="#15121d"/>
+      <path d="M37 44l-3 7h6l-3-7Z" fill="#15121d"/>
+      <rect x="30" y="58" width="3" height="7" rx="1" fill="#15121d"/><rect x="35.5" y="58" width="3" height="7" rx="1" fill="#15121d"/><rect x="41" y="58" width="3" height="7" rx="1" fill="#15121d"/></svg>`,
+    crown:`<svg class="crest" viewBox="0 0 74 84" fill="none" aria-hidden="true">
+      <path d="M16 34l6 26h30l6-26-11 10-10-16-10 16-11-10Z" fill="#cba35c" stroke="#8a7340" stroke-width="1"/>
+      <rect x="20" y="60" width="34" height="6" rx="2" fill="#cba35c"/>
+      <circle cx="16" cy="34" r="3.5" fill="#c5422a"/><circle cx="58" cy="34" r="3.5" fill="#c5422a"/><circle cx="37" cy="24" r="3.5" fill="#c5422a"/><circle cx="37" cy="46" r="3" fill="#c5422a"/></svg>`
+  };
+  const PRESET_ORDER = ["shield","star","swords","flame","skull","crown"];
+  let crest = {type:"preset", id:"shield"};
+
+  function renderCrest(){
+    const btn=document.getElementById("crestBtn");
+    if(crest.type==="image" && crest.src){
+      btn.innerHTML = `<img class="crest" src="${esc(crest.src)}" alt="クランシンボル">`;
+    }else{
+      btn.innerHTML = PRESETS[crest.id] || PRESETS.shield;
+    }
+  }
+
+  /* ---------- banner ---------- */
+  let banner = null; // {src}
+  function renderBanner(){
+    const zone=document.getElementById("bannerZone");
+    const header=document.querySelector("header.site");
+    const titleBlock=document.getElementById("titleBlock");
+    const runeDiv=header.querySelector(".rune-div");
+    // park the editable title safely in the header before wiping the zone,
+    // so its content & listeners survive the re-render
+    if(titleBlock && titleBlock.parentElement!==header){ header.insertBefore(titleBlock, runeDiv); }
+
+    if(banner && banner.src){
+      zone.innerHTML = `
+        <div class="banner hero">
+          <img src="${esc(banner.src)}" alt="クランバナー">
+          <div class="b-scrim"></div>
+          <div class="b-actions">
+            <button class="b-chip" id="bannerChange">変更</button>
+            <button class="b-chip" id="bannerRemove">削除</button>
+          </div>
+          <div class="b-overlay" id="bOverlay"></div>
+        </div>`;
+      zone.querySelector("#bOverlay").appendChild(titleBlock); // move title onto the banner
+      zone.querySelector("#bannerChange").addEventListener("click",bannerModal);
+      zone.querySelector("#bannerRemove").addEventListener("click",async()=>{
+        banner=null; await save(KEY.banner,null,true); renderBanner(); toast("バナーを削除しました");
+      });
+    }else{
+      zone.innerHTML = `
+        <button class="banner-add" id="bannerAdd">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8.5" cy="9.5" r="1.5"/></svg>
+          クランバナーを追加
+        </button>`;
+      zone.querySelector("#bannerAdd").addEventListener("click",bannerModal);
+    }
+  }
+
+  /* ---------- sample content (shown only while empty; NOT saved) ---------- */
+  const sampleGuides = [
+    {id:"s1", sample:true, cat:"クランボス", title:"UNM 30〜40Mダメージ編成", author:"見本",
+     body:"毒×火傷でターン稼ぎ→大ダメージの基本形。\n・毒担当：パッと盛れる毒2体\n・防御低下/弱体延長を1枠\n・速度バフでターン回しを安定させる\n速度 チューンは後ろから前へ。"},
+    {id:"s2", sample:true, cat:"ダンジョン", title:"火の知識者 ハード安定", author:"見本",
+     body:"継続ダメージ無効＋シールドが鍵。\nシールド役→反撃役→デバフ役の順で動かす。\nカウンターを盾で吸ってから一気に削る。"},
+    {id:"s3", sample:true, cat:"アリーナ", title:"先制スピードニュークの型", author:"見本",
+     body:"速度リーダー＋全体攻撃3体。\n相手より速く動いて1ターンで沈める構成。\n速度装備の最低ラインは要調整。"},
+  ];
+  const sampleVideos = [
+    {id:"sv1", sample:true, url:"https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+     title:"クランボス 立ち回り解説（見本）", note:"URLを貼るとこのように再生できます。", author:"見本"}
+  ];
+
+  /* ---------- state ---------- */
+  let guides=[], videos=[], board=[], meName="";
+
+  /* ---------- helpers ---------- */
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+  function timeAgo(ts){
+    const d=(Date.now()-ts)/1000;
+    if(d<60)return "たった今";
+    if(d<3600)return Math.floor(d/60)+"分前";
+    if(d<86400)return Math.floor(d/3600)+"時間前";
+    if(d<604800)return Math.floor(d/86400)+"日前";
+    return new Date(ts).toLocaleDateString("ja-JP");
+  }
+  let toastT;
+  function toast(msg){
+    const t=$("#toast"); t.textContent=msg; t.classList.add("show");
+    clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2200);
+  }
+
+  function ytId(url){
+    const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/);
+    return m ? m[1] : null;
+  }
+
+  /* ---------- render: guides ---------- */
+  function renderGuides(){
+    const grid=$("#guideGrid");
+    const list = guides.length ? guides : sampleGuides;
+    if(!list.length){
+      grid.innerHTML = emptyState("M9 3v18M15 3v18M3 9h18M3 15h18","まだ攻略メモがありません","「攻略を追加」から最初の編成を残してみよう");
+      return;
+    }
+    grid.innerHTML = list.map(g=>`
+      <article class="card">
+        ${g.sample?'<span class="sample-tag">見本</span>':''}
+        <span class="badge" data-cat="${esc(g.cat)}">${esc(g.cat)}</span>
+        <h3>${esc(g.title)}</h3>
+        <div class="body">${esc(g.body)}</div>
+        <div class="meta">
+          <span>${esc(g.author||"匿名")}</span>
+          ${g.sample?'':`<button class="del" data-del-guide="${g.id}">削除</button>`}
+        </div>
+      </article>`).join("");
+  }
+
+  /* ---------- render: videos ---------- */
+  function videoFrame(v){
+    const id = ytId(v.url);
+    if(id) return `<iframe src="https://www.youtube.com/embed/${id}" allowfullscreen loading="lazy" title="${esc(v.title)}"></iframe>`;
+    if(/\.(mp4|webm|ogg)(\?|$)/i.test(v.url)) return `<video src="${esc(v.url)}" controls preload="metadata"></video>`;
+    return `<a class="vlink" href="${esc(v.url)}" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7L8 5Z"/></svg>
+        <span>動画を開く</span></a>`;
+  }
+  function renderVideos(){
+    const grid=$("#videoGrid");
+    const list = videos.length ? videos : sampleVideos;
+    if(!list.length){
+      grid.innerHTML = emptyState("M8 5v14l11-7L8 5Z","まだ動画がありません","YouTube などのURLを貼って動画ガイドを共有しよう");
+      return;
+    }
+    grid.innerHTML = list.map(v=>`
+      <article class="vcard">
+        <div class="vframe">${videoFrame(v)}</div>
+        <div class="vbody">
+          ${v.sample?'<span class="sample-tag" style="position:static;display:inline-block;margin-bottom:8px;">見本</span>':''}
+          <h3>${esc(v.title)}</h3>
+          ${v.note?`<div class="note">${esc(v.note)}</div>`:""}
+          <div class="meta"><span>${esc(v.author||"匿名")}</span>
+          ${v.sample?'':`<button class="del" data-del-video="${v.id}">削除</button>`}</div>
+        </div>
+      </article>`).join("");
+  }
+
+  /* ---------- render: board ---------- */
+  function renderBoard(){
+    const feed=$("#boardFeed");
+    if(!board.length){
+      feed.innerHTML = emptyState("M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10Z","書き込みはまだありません","最初のひとことを残してみよう");
+      return;
+    }
+    feed.innerHTML = board.slice().sort((a,b)=>b.ts-a.ts).map(p=>`
+      <div class="post">
+        <div class="avatar">${esc((p.name||"?").trim().charAt(0)||"?")}</div>
+        <div class="pmain">
+          <div class="phead"><span class="pname">${esc(p.name||"匿名")}</span>
+            <span class="ptime">${timeAgo(p.ts)}</span></div>
+          <div class="ptext">${esc(p.text)}</div>
+        </div>
+        <button class="del" data-del-post="${p.id}" title="削除">×</button>
+      </div>`).join("");
+  }
+
+  function emptyState(path,title,desc){
+    return `<div class="empty" style="grid-column:1/-1">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="${path}" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h3>${title}</h3><p>${desc}</p></div>`;
+  }
+
+  /* ---------- modal ---------- */
+  const scrim=$("#scrim"), modal=$("#modal");
+  function openModal(html){ modal.innerHTML=html; scrim.classList.add("show");
+    const f=modal.querySelector("input,textarea,select"); if(f)f.focus(); }
+  function closeModal(){ scrim.classList.remove("show"); }
+  scrim.addEventListener("click",e=>{ if(e.target===scrim)closeModal(); });
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape")closeModal(); });
+
+  function guideModal(){
+    openModal(`
+      <h3>攻略を追加</h3>
+      <div class="field"><label>カテゴリ</label>
+        <div class="seg" id="catSeg">
+          <button data-cat="クランボス" class="on">クランボス</button>
+          <button data-cat="ダンジョン">ダンジョン</button>
+          <button data-cat="アリーナ">アリーナ</button>
+          <button data-cat="その他">その他</button>
+        </div></div>
+      <div class="field"><label>タイトル</label><input id="gTitle" placeholder="例：UNM 高速周回編成" maxlength="60"></div>
+      <div class="field"><label>内容</label><textarea id="gBody" placeholder="編成・順番・装備のコツなど" style="min-height:120px"></textarea></div>
+      <div class="field"><label>書いた人</label><input id="gAuthor" placeholder="ニックネーム" maxlength="20" value="${esc(meName)}"></div>
+      <div class="actions">
+        <button class="btn btn-ghost" data-close>やめる</button>
+        <button class="btn btn-primary" id="gSave">保存する</button>
+      </div>`);
+    let cat="クランボス";
+    modal.querySelector("#catSeg").addEventListener("click",e=>{
+      const b=e.target.closest("button"); if(!b)return;
+      modal.querySelectorAll("#catSeg button").forEach(x=>x.classList.remove("on"));
+      b.classList.add("on"); cat=b.dataset.cat;
+    });
+    modal.querySelector("#gSave").addEventListener("click",async()=>{
+      const title=modal.querySelector("#gTitle").value.trim();
+      const body=modal.querySelector("#gBody").value.trim();
+      const author=modal.querySelector("#gAuthor").value.trim()||"匿名";
+      if(!title){ toast("タイトルを入れてください"); return; }
+      guides.unshift({id:uid(),cat,title,body,author,ts:Date.now()});
+      await save(KEY.guides,guides,true);
+      closeModal(); renderGuides(); toast("攻略を保存しました");
+    });
+    bindClose();
+  }
+
+  function videoModal(){
+    openModal(`
+      <h3>動画を追加</h3>
+      <div class="field"><label>動画URL</label><input id="vUrl" placeholder="https://www.youtube.com/watch?v=…"></div>
+      <div class="field"><label>タイトル</label><input id="vTitle" placeholder="例：火の知識者ハード 解説" maxlength="60"></div>
+      <div class="field"><label>ひとことメモ（任意）</label><textarea id="vNote" placeholder="どんな内容か" style="min-height:70px"></textarea></div>
+      <div class="field"><label>投稿者</label><input id="vAuthor" placeholder="ニックネーム" maxlength="20" value="${esc(meName)}"></div>
+      <p style="color:var(--mist);font-size:12.5px;margin:14px 0 0">YouTube / YouTube Shorts のURL、または mp4 などの動画ファイルのURLに対応しています。</p>
+      <div class="actions">
+        <button class="btn btn-ghost" data-close>やめる</button>
+        <button class="btn btn-primary" id="vSave">追加する</button>
+      </div>`);
+    modal.querySelector("#vSave").addEventListener("click",async()=>{
+      const url=modal.querySelector("#vUrl").value.trim();
+      const title=modal.querySelector("#vTitle").value.trim()||"無題の動画";
+      const note=modal.querySelector("#vNote").value.trim();
+      const author=modal.querySelector("#vAuthor").value.trim()||"匿名";
+      if(!url){ toast("動画URLを入れてください"); return; }
+      videos.unshift({id:uid(),url,title,note,author,ts:Date.now()});
+      await save(KEY.videos,videos,true);
+      closeModal(); renderVideos(); toast("動画を追加しました");
+    });
+    bindClose();
+  }
+  function bindClose(){ modal.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",closeModal)); }
+
+  function crestModal(){
+    const presets = PRESET_ORDER.map(id=>
+      `<button data-preset="${id}" class="${crest.type==='preset'&&crest.id===id?'on':''}" aria-label="${id}">${PRESETS[id]}</button>`
+    ).join("");
+    openModal(`
+      <h3>クランのシンボル</h3>
+      <p style="color:var(--mist);font-size:13px;margin:2px 0 16px">エンブレムを選ぶか、自分の画像をアップロードできます。変更は全メンバーに共有されます。</p>
+      <div class="preset-grid">${presets}</div>
+      <div class="or-line">画像を使う</div>
+      <div class="field">
+        <label>画像ファイルをアップロード（推奨・正方形が綺麗）</label>
+        <input type="file" id="crestFile" accept="image/png,image/jpeg,image/webp,image/svg+xml">
+      </div>
+      <div class="field">
+        <label>または画像URLを貼る</label>
+        <input id="crestUrl" placeholder="https://…/emblem.png">
+      </div>
+      <div class="actions">
+        <button class="btn btn-ghost" data-close>閉じる</button>
+        <button class="btn btn-primary" id="crestUrlApply">URLを適用</button>
+      </div>`);
+
+    async function apply(c){ crest=c; await save(KEY.crest,crest,true); renderCrest(); closeModal(); toast("シンボルを変更しました"); }
+
+    modal.querySelector(".preset-grid").addEventListener("click",e=>{
+      const b=e.target.closest("[data-preset]"); if(!b)return;
+      apply({type:"preset", id:b.dataset.preset});
+    });
+    modal.querySelector("#crestFile").addEventListener("change",e=>{
+      const f=e.target.files&&e.target.files[0]; if(!f)return;
+      if(f.size>2*1024*1024){ toast("画像は2MBまでにしてください"); return; }
+      const r=new FileReader();
+      r.onload=()=>apply({type:"image", src:r.result});
+      r.onerror=()=>toast("画像を読み込めませんでした");
+      r.readAsDataURL(f);
+    });
+    modal.querySelector("#crestUrlApply").addEventListener("click",()=>{
+      const u=modal.querySelector("#crestUrl").value.trim();
+      if(!u){ toast("画像URLを入れてください"); return; }
+      apply({type:"image", src:u});
+    });
+    bindClose();
+  }
+
+  function bannerModal(){
+    openModal(`
+      <h3>クランバナー</h3>
+      <p style="color:var(--mist);font-size:13px;margin:2px 0 16px">横長の画像がおすすめです（目安：1200×300 / 4:1くらい）。全メンバーに共有されます。</p>
+      <div class="field">
+        <label>画像ファイルをアップロード（推奨）</label>
+        <input type="file" id="bFile" accept="image/png,image/jpeg,image/webp">
+      </div>
+      <div class="or-line">または</div>
+      <div class="field">
+        <label>画像URLを貼る</label>
+        <input id="bUrl" placeholder="https://…/banner.png">
+      </div>
+      <div class="actions">
+        <button class="btn btn-ghost" data-close>閉じる</button>
+        <button class="btn btn-primary" id="bUrlApply">URLを適用</button>
+      </div>`);
+    async function apply(src){ banner={src}; await save(KEY.banner,banner,true); renderBanner(); closeModal(); toast("バナーを設定しました"); }
+    modal.querySelector("#bFile").addEventListener("change",e=>{
+      const f=e.target.files&&e.target.files[0]; if(!f)return;
+      if(f.size>3*1024*1024){ toast("画像は3MBまでにしてください"); return; }
+      const r=new FileReader();
+      r.onload=()=>apply(r.result);
+      r.onerror=()=>toast("画像を読み込めませんでした");
+      r.readAsDataURL(f);
+    });
+    modal.querySelector("#bUrlApply").addEventListener("click",()=>{
+      const u=modal.querySelector("#bUrl").value.trim();
+      if(!u){ toast("画像URLを入れてください"); return; }
+      apply(u);
+    });
+    bindClose();
+  }
+
+  /* ---------- events ---------- */
+  $("#addGuide").addEventListener("click",guideModal);
+  $("#addVideo").addEventListener("click",videoModal);
+  $("#crestBtn").addEventListener("click",crestModal);
+
+  document.addEventListener("click",async e=>{
+    const dg=e.target.closest("[data-del-guide]");
+    if(dg){ guides=guides.filter(g=>g.id!==dg.dataset.delGuide); await save(KEY.guides,guides,true); renderGuides(); toast("削除しました"); return; }
+    const dv=e.target.closest("[data-del-video]");
+    if(dv){ videos=videos.filter(v=>v.id!==dv.dataset.delVideo); await save(KEY.videos,videos,true); renderVideos(); toast("削除しました"); return; }
+    const dp=e.target.closest("[data-del-post]");
+    if(dp){ board=board.filter(p=>p.id!==dp.dataset.delPost); await save(KEY.board,board,true); renderBoard(); return; }
+  });
+
+  // tabs
+  document.querySelectorAll(".tab").forEach(t=>{
+    t.addEventListener("click",()=>{
+      document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+      document.querySelectorAll(".panel").forEach(x=>x.classList.remove("show"));
+      t.classList.add("active");
+      $("#panel-"+t.dataset.tab).classList.add("show");
+    });
+  });
+
+  // board send
+  async function sendPost(){
+    const name=$("#boardName").value.trim();
+    const text=$("#boardText").value.trim();
+    if(!text){ toast("メッセージを書いてください"); return; }
+    if(name && name!==meName){ meName=name; await save(KEY.me,meName,false); }
+    board=await load(KEY.board,true,board); // re-read latest to reduce overwrite
+    board.push({id:uid(),name:name||"匿名",text,ts:Date.now()});
+    await save(KEY.board,board,true);
+    $("#boardText").value="";
+    renderBoard(); toast("書き込みました");
+  }
+  $("#boardSend").addEventListener("click",sendPost);
+  $("#boardText").addEventListener("keydown",e=>{ if((e.metaKey||e.ctrlKey)&&e.key==="Enter")sendPost(); });
+
+  // editable clan meta
+  function saveMeta(){
+    const meta={name:$("#clanName").innerText.trim(),sub:$("#clanSub").innerText.trim()};
+    save(KEY.meta,meta,true);
+  }
+  let metaT;
+  ["clanName","clanSub"].forEach(id=>{
+    const el=$("#"+id);
+    el.addEventListener("input",()=>{ clearTimeout(metaT); metaT=setTimeout(saveMeta,500); });
+    el.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); el.blur(); } });
+  });
+
+  /* ---------- setup guide ---------- */
+  function showSetup(state){
+    const el=document.getElementById("setupBanner"); if(!el)return;
+    if(state==="ok"){
+      el.innerHTML = `<div class="setup-ok">✓ Firebaseに接続済み。クラン全員で共有・保存されます。</div>`;
+      setTimeout(()=>{ el.innerHTML=""; }, 4000);
+      return;
+    }
+    el.innerHTML = `
+      <div class="setup-box">
+        <h3>セットアップが必要です（最初の1回だけ）</h3>
+        <p>このサイトを全員で共有・保存するために、無料の Firebase を接続します。下の手順のあと、ファイル上部の <code>firebaseConfig</code> に設定を貼り付けてください。</p>
+        <ol>
+          <li><a href="https://console.firebase.google.com/" target="_blank" rel="noopener">Firebaseコンソール</a>で「プロジェクトを作成」（無料）。</li>
+          <li>左メニューの「構築 → Realtime Database」を開き「データベースを作成」。場所を選び、ルールは「<b>テストモード</b>」を選択。</li>
+          <li>歯車アイコン →「プロジェクトの設定」→ 下部「マイアプリ」で「ウェブ(&lt;/&gt;)」アプリを追加し、表示される <code>firebaseConfig</code> をコピー。</li>
+          <li>このHTMLファイルを開いて、上部の <code>var firebaseConfig = { … }</code> をコピーした内容に丸ごと置き換えて保存。<code>databaseURL</code> の行が入っているか確認。</li>
+          <li>ファイルを GitHub Pages などに置いてURLをクランに共有。全員が同じ掲示板を見られます。</li>
+        </ol>
+        <p style="margin-top:12px;font-size:13px;color:var(--mist)">※テストモードは誰でも読み書きできる設定です。小規模なクラン用途なら十分ですが、URLを知らない人には共有しないでください。手順や用語で詰まったら、その箇所を教えてくれれば個別に案内します。</p>
+      </div>`;
+  }
+
+  /* ---------- init ---------- */
+  (async function init(){
+    const connected = initFirebase();
+
+    if(!connected){
+      // not configured yet: show setup guide, render samples/empty so design is visible
+      showSetup("setup");
+      updateStorageStatus(false);
+      crest={type:"preset",id:"shield"}; renderCrest(); renderBanner();
+      renderGuides(); renderVideos(); renderBoard();
+      meName = await load(KEY.me,false,"") || ""; if(meName) $("#boardName").value=meName;
+      return;
+    }
+
+    // connected: initial load
+    showSetup("ok"); updateStorageStatus(true);
+    const meta = await load(KEY.meta,true,null);
+    if(meta){ if(meta.name)$("#clanName").innerText=meta.name; if(meta.sub)$("#clanSub").innerText=meta.sub; }
+    crest = await load(KEY.crest,true,{type:"preset",id:"shield"}); renderCrest();
+    banner = await load(KEY.banner,true,null); renderBanner();
+    guides = await load(KEY.guides,true,[]);
+    videos = await load(KEY.videos,true,[]);
+    board  = await load(KEY.board,true,[]);
+    meName = await load(KEY.me,false,"") || "";
+    if(meName) $("#boardName").value=meName;
+    renderGuides(); renderVideos(); renderBoard();
+
+    // live sync: re-render when any member changes shared data
+    const sub=(key,cb)=>db.ref('clan/'+key).on('value',s=>{ if(s.exists()){ try{ cb(JSON.parse(s.val())); }catch(e){} } });
+    sub('guides', v=>{ guides=v; mem[KEY.guides]=v; renderGuides(); });
+    sub('videos', v=>{ videos=v; mem[KEY.videos]=v; renderVideos(); });
+    sub('board',  v=>{ board=v;  mem[KEY.board]=v;  renderBoard(); });
+    sub('crest',  v=>{ crest=v;  mem[KEY.crest]=v;  renderCrest(); });
+    sub('banner', v=>{ banner=v; mem[KEY.banner]=v; renderBanner(); });
+    sub('meta',   v=>{ mem[KEY.meta]=v;
+      const cn=$("#clanName"), cs=$("#clanSub");
+      if(document.activeElement!==cn && v.name) cn.innerText=v.name;
+      if(document.activeElement!==cs && v.sub)  cs.innerText=v.sub;
+    });
+  })();
+})();
+</script>
