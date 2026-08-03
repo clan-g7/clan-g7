@@ -8,6 +8,7 @@
 <!-- Firebase (共有保存用) -->
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script>
   /* ===================================================================
      ▼▼▼  ここにFirebaseの設定を貼り付けてください（最初の1回だけ） ▼▼▼
@@ -833,6 +834,11 @@
       setTimeout(()=>{ el.innerHTML=""; }, 4000);
       return;
     }
+    if(state==="authfail"){
+      el.innerHTML = `<div class="setup-box"><h3>匿名ログインを有効にしてください</h3>
+        <p>ルールを「ログイン必須」に締めたため、匿名認証が必要です。Firebaseコンソールで「<b>Authentication</b> → ログイン方法 → <b>匿名</b>」を<b>有効</b>にすると、保存が復活します（メンバーの操作は不要で、裏側で自動的にログインされます）。</p></div>`;
+      return;
+    }
     el.innerHTML = `
       <div class="setup-box">
         <h3>セットアップが必要です（最初の1回だけ）</h3>
@@ -862,8 +868,21 @@
       return;
     }
 
+    // sign in anonymously so secured rules ("auth != null") allow this visitor.
+    // members don't type anything — this happens automatically in the background.
+    let authed = true;
+    try{
+      if(firebase.auth && !firebase.auth().currentUser){
+        await firebase.auth().signInAnonymously();
+      }
+    }catch(e){
+      authed = false;
+      console.error("匿名認証に失敗しました。Firebaseで「Authentication → 匿名」を有効にしてください。", e);
+    }
+
     // connected: initial load
-    showSetup("ok"); updateStorageStatus(true);
+    if(authed){ showSetup("ok"); updateStorageStatus(true); }
+    else { showSetup("authfail"); updateStorageStatus(false); }
     const meta = await load(KEY.meta,true,null);
     if(meta){ if(meta.name)$("#clanName").innerText=meta.name; if(meta.sub)$("#clanSub").innerText=meta.sub; }
     crest = await load(KEY.crest,true,{type:"preset",id:"shield"}); renderCrest();
